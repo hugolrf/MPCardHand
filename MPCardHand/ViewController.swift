@@ -11,15 +11,15 @@ import MultipeerConnectivity
 
 enum SwipeDirection {
 
-    case Left
-    case Right
+    case left
+    case right
 }
 
 enum CardStackStatus {
 
-    case STACKED
-    case EXPAND_LEFT
-    case EXPAND_RIGHT
+    case stacked
+    case expand_LEFT
+    case expand_RIGHT
 }
 
 extension Double {
@@ -30,13 +30,13 @@ extension Double {
 
 // Swift 2 Array Extension
 extension Array where Element: Equatable {
-    mutating func removeObject(object: Element) {
-        if let index = self.indexOf(object) {
-            self.removeAtIndex(index)
+    mutating func removeObject(_ object: Element) {
+        if let index = self.index(of: object) {
+            self.remove(at: index)
         }
     }
     
-    mutating func removeObjectsInArray(array: [Element]) {
+    mutating func removeObjectsInArray(_ array: [Element]) {
         for object in array {
             self.removeObject(object)
         }
@@ -54,11 +54,11 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
     var cardBackImage:UIImage! = nil
     var cardDataArray:[Card] = [] // card database
     var cardDisplayArray:[CardImageView] = []
-    var startPoint:CGPoint = CGPointZero
+    var startPoint:CGPoint = CGPoint.zero
     let kNumCardsText = "Num of Cards"
     
     //status
-    var curCardStatus:CardStackStatus = .STACKED
+    var curCardStatus:CardStackStatus = .stacked
     
     //Multipeer Connectivity
     let kServiceType = "multi-peer-chat"
@@ -96,7 +96,7 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
                     name = "Ace"
                 }
                 
-                let cardName = "\(name) of \(type.capitalizedString) "
+                let cardName = "\(name) of \(type.capitalized) "
                 
                 let imageName = String(format: "\(type)_%02d", i)
                 let image = UIImage(named: imageName)!
@@ -104,33 +104,33 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
                 let card = Card(id: id, name: cardName, image: image)
                 self.cardDataArray.append(card)
                 
-                id++
+                id += 1
             }
         }
         
         //Tap gesture on self.view
-        let singleTapGestureOnView = UITapGestureRecognizer(target: self, action: "handleTapOnView:")
+        let singleTapGestureOnView = UITapGestureRecognizer(target: self, action: #selector(ViewController.handleTapOnView(_:)))
         singleTapGestureOnView.numberOfTapsRequired = 1
         singleTapGestureOnView.numberOfTouchesRequired = 1
         self.view.addGestureRecognizer(singleTapGestureOnView)
         
         //Swipe gesture on self.view (left)
-        let swipeLeftGestureOnView = UISwipeGestureRecognizer(target: self, action: "swipeGestureOnView:")
+        let swipeLeftGestureOnView = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.swipeGestureOnView(_:)))
         swipeLeftGestureOnView.numberOfTouchesRequired = 1
-        swipeLeftGestureOnView.direction = .Left
+        swipeLeftGestureOnView.direction = .left
         self.view.addGestureRecognizer(swipeLeftGestureOnView)
         
         //Swipe gesture on self.view (right)
-        let swipeRightGestureOnView = UISwipeGestureRecognizer(target: self, action: "swipeGestureOnView:")
+        let swipeRightGestureOnView = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.swipeGestureOnView(_:)))
         swipeRightGestureOnView.numberOfTouchesRequired = 1
-        swipeRightGestureOnView.direction = .Right
+        swipeRightGestureOnView.direction = .right
         self.view.addGestureRecognizer(swipeRightGestureOnView)
         
         //Multipeer Connectivity
         
         //session
-        self.myPeerID = MCPeerID(displayName: UIDevice.currentDevice().name)
-        self.session = MCSession(peer: self.myPeerID, securityIdentity: nil, encryptionPreference: .Required)
+        self.myPeerID = MCPeerID(displayName: UIDevice.current.name)
+        self.session = MCSession(peer: self.myPeerID, securityIdentity: nil, encryptionPreference: .required)
         self.session.delegate = self
         self.browser = MCBrowserViewController(serviceType: kServiceType, session: self.session)
         self.browser.delegate = self
@@ -143,68 +143,68 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
 
     //MARK: - IBAction
     
-    @IBAction func startBrowsing(sender: AnyObject) {
+    @IBAction func startBrowsing(_ sender: AnyObject) {
         
-        self.presentViewController(self.browser, animated: true, completion: nil)
+        self.present(self.browser, animated: true, completion: nil)
     }
     
     //MARK: - MCNearbyServiceBrowserDelegate
     
-    func browserViewController(browserViewController: MCBrowserViewController, shouldPresentNearbyPeer peerID: MCPeerID, withDiscoveryInfo info: [String : String]?) -> Bool {
+    func browserViewController(_ browserViewController: MCBrowserViewController, shouldPresentNearbyPeer peerID: MCPeerID, withDiscoveryInfo info: [String : String]?) -> Bool {
         
         print("peerID: \(peerID)")
         
         return true
     }
     
-    func browserViewControllerDidFinish(browserViewController: MCBrowserViewController) {
+    func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
         
         print("browser finished")
         
-        self.browser.dismissViewControllerAnimated(true, completion: nil)
+        self.browser.dismiss(animated: true, completion: nil)
     }
     
-    func browserViewControllerWasCancelled(browserViewController: MCBrowserViewController) {
+    func browserViewControllerWasCancelled(_ browserViewController: MCBrowserViewController) {
      
         print("browser cancelled")
         
-        self.browser.dismissViewControllerAnimated(true, completion: nil)
+        self.browser.dismiss(animated: true, completion: nil)
     }
     
     //MARK: - MCSessionDelegate
     
-    func session(session: MCSession, didReceiveCertificate certificate: [AnyObject]?, fromPeer peerID: MCPeerID, certificateHandler: (Bool) -> Void) {
+    func session(_ session: MCSession, didReceiveCertificate certificate: [Any]?, fromPeer peerID: MCPeerID, certificateHandler: @escaping (Bool) -> Void) {
         
         return certificateHandler(true)
     }
     
-    func session(session: MCSession, peer peerID: MCPeerID, didChangeState state: MCSessionState) {
+    func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
         
         print("myPeerID: \(self.session.myPeerID)")
         print("connectd peerID: \(peerID)")
         
         switch state {
             
-            case .Connecting:
+            case .connecting:
                 print("Connecting..")
                 break
                 
-            case .Connected:
+            case .connected:
                 print("Connected..")
                 self.statusLbl.text = "Connected"
                 break
                 
-            case .NotConnected:
+            case .notConnected:
                 print("Not Connected..")
                 self.statusLbl.text = "Not Connected"
                 
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                DispatchQueue.main.async(execute: { () -> Void in
                     
                     //animate all Cards flying out
-                    UIView.animateWithDuration(0.5, animations: { () -> Void in
+                    UIView.animate(withDuration: 0.5, animations: { () -> Void in
                         
                         for cardImgView in self.cardDisplayArray {
-                            cardImgView.center = CGPointMake(cardImgView.center.x, -100.0)
+                            cardImgView.center = CGPoint(x: cardImgView.center.x, y: -100.0)
                         }
                         
                         }, completion: { (success) -> Void in
@@ -224,11 +224,11 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
         }
     }
     
-    func session(session: MCSession, didReceiveData data: NSData, fromPeer peerID: MCPeerID) {
+    func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         
         print("hand didReceiveData")
         
-        let cardDict:NSDictionary = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! NSDictionary
+        let cardDict:NSDictionary = NSKeyedUnarchiver.unarchiveObject(with: data) as! NSDictionary
         print("cardDict:\(cardDict)")
         let cardID = cardDict["id"] as! Int
         let isFront = cardDict["isFront"] as! Bool
@@ -236,32 +236,32 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
         //card data
         let card = self.cardDataArray[cardID]
 
-        dispatch_async(dispatch_get_main_queue()) { () -> Void in
+        DispatchQueue.main.async { () -> Void in
             
             //create card display
             let cardImgView = CardImageView(image: card.image)
-            cardImgView.center = CGPointMake(self.view.center.x, -50)
+            cardImgView.center = CGPoint(x: self.view.center.x, y: -50)
             //cardImgView.transform = CGAffineTransformScale(cardImgView.transform, 1.3, 1.3)//scale down
-            cardImgView.userInteractionEnabled = true//enable this for gesture !
+            cardImgView.isUserInteractionEnabled = true//enable this for gesture !
             cardImgView.card = card     //assign card data
             cardImgView.tag = card.id   //tag the card as the card ID
             cardImgView.image = isFront ? card.image : self.cardBackImage
             cardImgView.isFront = isFront
             
             //tap gesture (single tap)
-            let singleTapGesture = UITapGestureRecognizer(target: self, action: "handleSingleTap:")
+            let singleTapGesture = UITapGestureRecognizer(target: self, action: #selector(ViewController.handleSingleTap(_:)))
             singleTapGesture.numberOfTapsRequired = 1
             singleTapGesture.numberOfTouchesRequired = 1
             cardImgView.addGestureRecognizer(singleTapGesture)
             
             //tap gesture (double tap)
-            let doubleTapGesture = UITapGestureRecognizer(target: self, action: "handleDoubleTap:")
+            let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(ViewController.handleDoubleTap(_:)))
             doubleTapGesture.numberOfTapsRequired = 2
             doubleTapGesture.numberOfTouchesRequired = 1
             cardImgView.addGestureRecognizer(doubleTapGesture)
             
             //pan gesture
-            let panGesture = UIPanGestureRecognizer(target: self, action: "handlePan:")
+            let panGesture = UIPanGestureRecognizer(target: self, action: #selector(ViewController.handlePan(_:)))
             panGesture.minimumNumberOfTouches = 1
             panGesture.maximumNumberOfTouches = 1
             cardImgView.addGestureRecognizer(panGesture)//add to view
@@ -273,33 +273,33 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
             self.numCardsLbl.text = "\(self.kNumCardsText): \(self.cardDisplayArray.count)"
             
             //animate to position
-            UIView.animateWithDuration(0.5) { () -> Void in
+            UIView.animate(withDuration: 0.5, animations: { () -> Void in
                 
-                cardImgView.center = CGPointMake(self.view.center.x, self.view.center.y - 50)
-            }
+                cardImgView.center = CGPoint(x: self.view.center.x, y: self.view.center.y - 50)
+            }) 
         }
     
         print("cardName: \(card.name), cardID:\(card.id), isFront:\(isFront)")
     }
     
-    func session(session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, withProgress progress: NSProgress) {
+    func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
         
         print("hand didStartReceivingResourceWithName")
     }
     
-    func session(session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, atURL localURL: NSURL, withError error: NSError?) {
+    func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL, withError error: Error?) {
         
         print("hand didFinishReceivingResourceWithName")
     }
     
-    func session(session: MCSession, didReceiveStream stream: NSInputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
+    func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
         
         print("hand didReceiveStream")
     }
     
     //MARK: - Helpers
     
-    func showCardName(cardID: Int) {
+    func showCardName(_ cardID: Int) {
         
         let card = self.cardDataArray[cardID] //retrieve Card
         self.cardNameLbl.text = card.name
@@ -307,7 +307,7 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
     
     //MARK: - UIGestureRecognizers
     
-    func handleSingleTap(recognizer:UITapGestureRecognizer) {
+    func handleSingleTap(_ recognizer:UITapGestureRecognizer) {
         
         //single tap
         
@@ -318,7 +318,7 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
         }
     }
     
-    func handleDoubleTap(recognizer:UITapGestureRecognizer) {
+    func handleDoubleTap(_ recognizer:UITapGestureRecognizer) {
         
         //double tap
         
@@ -330,16 +330,16 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
             let card = self.cardDataArray[cardImgView.tag]
             
             //animate flip
-            var animationOptions:UIViewAnimationOptions = .TransitionFlipFromLeft
+            var animationOptions:UIViewAnimationOptions = .transitionFlipFromLeft
             
             if cardImgView.isFront {
                 cardImgView.image = self.cardBackImage //shows card back
             } else {
-                animationOptions = .TransitionFlipFromRight
+                animationOptions = .transitionFlipFromRight
                 cardImgView.image = card.image
             }
             
-            UIView.transitionWithView(recognizer.view!, duration: 0.5, options: animationOptions, animations: { () -> Void in
+            UIView.transition(with: recognizer.view!, duration: 0.5, options: animationOptions, animations: { () -> Void in
                 
             },
             completion: nil)
@@ -348,7 +348,7 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
         }
     }
     
-    func handlePan(recognizer:UIPanGestureRecognizer) {
+    func handlePan(_ recognizer:UIPanGestureRecognizer) {
         
         /*
         var dictionaryExample : [String:AnyObject] = ["user":"UserName", "pass":"password", "token":"0123456789", "image":0] // image should be either NSData or empty
@@ -358,26 +358,26 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
         
         let cardImgView = recognizer.view as! CardImageView
         
-        if recognizer.state == .Cancelled {
+        if recognizer.state == .cancelled {
             
             print("cancelled\n")
         }
-        else if recognizer.state == .Began {
+        else if recognizer.state == .began {
             
             self.startPoint = cardImgView.center
             self.showCardName(cardImgView.tag)
         }
-        else if recognizer.state == .Changed {
+        else if recognizer.state == .changed {
             
-            let translation = recognizer.translationInView(self.view)
+            let translation = recognizer.translation(in: self.view)
             recognizer.view!.center = CGPoint(x: recognizer.view!.center.x + translation.x, y: recognizer.view!.center.y + translation.y)
-            recognizer.setTranslation(CGPointZero, inView: self.view)
+            recognizer.setTranslation(CGPoint.zero, in: self.view)
             
             if self.session.connectedPeers.count == 1 {
             
-                let cardCenter = CGPointMake(cardImgView.center.x, cardImgView.frame.origin.y + cardImgView.frame.size.height * 0.5)
+                let cardCenter = CGPoint(x: cardImgView.center.x, y: cardImgView.frame.origin.y + cardImgView.frame.size.height * 0.5)
                 
-                if CGRectContainsPoint(self.transferView.frame, cardCenter) {
+                if self.transferView.frame.contains(cardCenter) {
                 
                     self.transferView.alpha = 0.1
                 }
@@ -387,16 +387,16 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
                 }
             }
         }
-        else if recognizer.state == .Ended {
+        else if recognizer.state == .ended {
             
             self.transferView.alpha = 0.3
             
-            let cardCenter = CGPointMake(cardImgView.center.x, cardImgView.frame.origin.y + cardImgView.frame.size.height * 0.5)
+            let cardCenter = CGPoint(x: cardImgView.center.x, y: cardImgView.frame.origin.y + cardImgView.frame.size.height * 0.5)
             
-            if CGRectContainsPoint(self.transferView.frame, cardCenter) {
+            if self.transferView.frame.contains(cardCenter) {
         
-                let cardDict = ["id":cardImgView.tag, "isFront":cardImgView.isFront]
-                let cardArchivedData = NSKeyedArchiver.archivedDataWithRootObject(cardDict)
+                let cardDict = ["id":cardImgView.tag, "isFront":cardImgView.isFront] as [String : Any]
+                let cardArchivedData = NSKeyedArchiver.archivedData(withRootObject: cardDict)
                 
                 if self.session.connectedPeers.count == 1 {
                 
@@ -405,12 +405,12 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
                 
                     do {
                         
-                        try self.session.sendData(cardArchivedData, toPeers: [peerID], withMode: .Reliable)
+                        try self.session.send(cardArchivedData, toPeers: [peerID], with: .reliable)
                     
                         //animate card flying out
-                        UIView.animateWithDuration(0.5, animations: { () -> Void in
+                        UIView.animate(withDuration: 0.5, animations: { () -> Void in
                             
-                            cardImgView.center = CGPointMake(cardImgView.center.x, -100.0)
+                            cardImgView.center = CGPoint(x: cardImgView.center.x, y: -100.0)
                             
                         }, completion: { (success) -> Void in
                                 
@@ -430,7 +430,7 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
             } else {
             
                 //if not sending data, return card
-                UIView.animateWithDuration(0.5, animations: { () -> Void in
+                UIView.animate(withDuration: 0.5, animations: { () -> Void in
                     
                     recognizer.view!.center = self.startPoint
                     
@@ -441,48 +441,48 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
         }
     }
     
-    func handleTapOnView(recognizer:UITapGestureRecognizer) {
+    func handleTapOnView(_ recognizer:UITapGestureRecognizer) {
         
         self.cardNameLbl.text = "No Card Selected"
     }
     
-    func swipeGestureOnView(recognizer:UISwipeGestureRecognizer) {
+    func swipeGestureOnView(_ recognizer:UISwipeGestureRecognizer) {
         
-        if recognizer.state == .Ended {
+        if recognizer.state == .ended {
             
-            if recognizer.direction == .Left {
+            if recognizer.direction == .left {
             
                 print("swiped left")
                 
-                if self.curCardStatus == .STACKED {
+                if self.curCardStatus == .stacked {
                 
-                    UIView.animateWithDuration(0.5, animations: { () -> Void in
+                    UIView.animate(withDuration: 0.5, animations: { () -> Void in
                         
-                        self.swipeOpenCardsWithDirection(.Left)
+                        self.swipeOpenCardsWithDirection(.left)
                     })
                 }
-                else if self.curCardStatus == .EXPAND_RIGHT {
+                else if self.curCardStatus == .expand_RIGHT {
                 
-                    UIView.animateWithDuration(0.5, animations: { () -> Void in
+                    UIView.animate(withDuration: 0.5, animations: { () -> Void in
                         
                         self.swipeCloseCards()
                     })
                 }
             }
-            else if recognizer.direction == .Right {
+            else if recognizer.direction == .right {
             
                 print("swiped right")
                 
-                if self.curCardStatus == .STACKED {
+                if self.curCardStatus == .stacked {
                     
-                    UIView.animateWithDuration(0.5, animations: { () -> Void in
+                    UIView.animate(withDuration: 0.5, animations: { () -> Void in
                         
-                        self.swipeOpenCardsWithDirection(.Right)
+                        self.swipeOpenCardsWithDirection(.right)
                     })
                 }
-                else if self.curCardStatus == .EXPAND_LEFT {
+                else if self.curCardStatus == .expand_LEFT {
                     
-                    UIView.animateWithDuration(0.5, animations: { () -> Void in
+                    UIView.animate(withDuration: 0.5, animations: { () -> Void in
                         
                         self.swipeCloseCards()
                     })
@@ -497,23 +497,23 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
     
     //MARK: - Animation Helpers
     
-    func rotateCardWithView(v:UIView, rotationPoint:CGPoint, degrees:Double) {
+    func rotateCardWithView(_ v:UIView, rotationPoint:CGPoint, degrees:Double) {
     
         //reset anchor and position
-        let minX   = CGRectGetMinX(v.frame);
-        let minY   = CGRectGetMinY(v.frame);
-        let width  = CGRectGetWidth(v.frame);
-        let height = CGRectGetHeight(v.frame);
-        let anchorPoint =  CGPointMake((rotationPoint.x-minX)/width,
-            (rotationPoint.y-minY)/height);
+        let minX   = v.frame.minX;
+        let minY   = v.frame.minY;
+        let width  = v.frame.width;
+        let height = v.frame.height;
+        let anchorPoint =  CGPoint(x: (rotationPoint.x-minX)/width,
+            y: (rotationPoint.y-minY)/height);
         v.layer.anchorPoint = anchorPoint;
         v.layer.position = rotationPoint;
         //v.transform = CGAffineTransformIdentity
         
         //perform transformation animation
-        UIView.animateWithDuration(0.5, animations: { () -> Void in
+        UIView.animate(withDuration: 0.5, animations: { () -> Void in
         
-            v.transform = CGAffineTransformMakeRotation(degrees.degreesToRadians)
+            v.transform = CGAffineTransform(rotationAngle: degrees.degreesToRadians)
             self.view.layoutIfNeeded()
             
         }, completion: nil)
@@ -521,7 +521,7 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
     
     //MARK: - Gesture Helpers
     
-    func swipeOpenCardsWithDirection(direction:SwipeDirection) {
+    func swipeOpenCardsWithDirection(_ direction:SwipeDirection) {
     
         let cardCount = self.cardDisplayArray.count
         let cardCountHalf = floor(Double(cardCount) * 0.5)
@@ -531,9 +531,9 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
         print("cardCountHalf:\(cardCountHalf), startAngle:\(rotationDegrees)")
         
         //anchorPoint of rotation
-        let rotationPoint = CGPointMake(self.view.center.x, self.view.center.y + 100)
+        let rotationPoint = CGPoint(x: self.view.center.x, y: self.view.center.y + 100)
         
-        if direction == .Right {
+        if direction == .right {
         
             for v in self.cardDisplayArray {
                 
@@ -541,10 +541,10 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
                 rotationDegrees += angleOffset
             }
         }
-        else if direction == .Left {
+        else if direction == .left {
             
             //start from last
-            for (var i = (cardCount-1); i > 0; i--) {
+            for i in ((0 + 1)...(cardCount-1)).reversed() {
                 
                 let v = self.cardDisplayArray[i]
                 self.rotateCardWithView(v, rotationPoint: rotationPoint, degrees: rotationDegrees)
@@ -552,11 +552,11 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
             }
         }
     
-        if direction == .Right {
-            self.curCardStatus = .EXPAND_RIGHT
+        if direction == .right {
+            self.curCardStatus = .expand_RIGHT
         }
-        else if direction == .Left {
-            self.curCardStatus = .EXPAND_LEFT
+        else if direction == .left {
+            self.curCardStatus = .expand_LEFT
         }
     }
     
@@ -566,20 +566,20 @@ class ViewController: UIViewController, MCBrowserViewControllerDelegate, MCSessi
         
             for cardImgView in self.cardDisplayArray {
             
-                cardImgView.transform = CGAffineTransformMakeRotation(0.0.degreesToRadians)
+                cardImgView.transform = CGAffineTransform(rotationAngle: 0.0.degreesToRadians)
             }
             
-            self.curCardStatus = .STACKED
+            self.curCardStatus = .stacked
         }
     }
     
     //
-    func setAnchorPoint(anchorPoint: CGPoint, forView view: UIView) {
-        var newPoint = CGPointMake(view.bounds.size.width * anchorPoint.x, view.bounds.size.height * anchorPoint.y)
-        var oldPoint = CGPointMake(view.bounds.size.width * view.layer.anchorPoint.x, view.bounds.size.height * view.layer.anchorPoint.y)
+    func setAnchorPoint(_ anchorPoint: CGPoint, forView view: UIView) {
+        var newPoint = CGPoint(x: view.bounds.size.width * anchorPoint.x, y: view.bounds.size.height * anchorPoint.y)
+        var oldPoint = CGPoint(x: view.bounds.size.width * view.layer.anchorPoint.x, y: view.bounds.size.height * view.layer.anchorPoint.y)
         
-        newPoint = CGPointApplyAffineTransform(newPoint, view.transform)
-        oldPoint = CGPointApplyAffineTransform(oldPoint, view.transform)
+        newPoint = newPoint.applying(view.transform)
+        oldPoint = oldPoint.applying(view.transform)
         
         var position = view.layer.position
         position.x -= oldPoint.x
